@@ -20,6 +20,27 @@ ferdowsiVoc = {key: val for key, val in getTrainSet(f).items() if val > 2}
 hafezVoc = {key: val for key, val in getTrainSet(h).items() if val > 2}
 molaviVoc = {key: val for key, val in getTrainSet(m).items() if val > 2}
 
+
+class UnigramModel:
+    def __init__(self, dictionary):
+        self.dictionary = dictionary
+        self.uniqueWordSize = len(self.dictionary)
+        self.wordsSize = sum(dictionary.values())
+
+    def wordProb(self,word):
+        wordNo = self.dictionary.get(word,0)
+        if wordNo == 0 or self.wordsSize == 0:
+            return 0
+        else:
+            return float(wordNo)/float(self.wordsSize)
+    def sentenceProb(self,sentence):
+        probSum = 1
+        words = probSum.split(" ")
+        for i in words:
+            probSum *= self.wordProb(i)
+        return probSum
+
+
 print(ferdowsiVoc)
 print(hafezVoc)
 print(molaviVoc)
