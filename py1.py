@@ -1,13 +1,17 @@
+dictionary = dict()
 def word_count(str):
-    dictionary  = dict()
     words = str.split()
-
     for word in words:
-        if word in dictionary :
-            dictionary [word] += 1
+        if word in dictionary:
+            dictionary[word] += 1
         else:
-            dictionary [word] = 1
+            dictionary[word] = 1
 
-    return dictionary
-
-print(word_count('سحر سحر یک دو سه کرد ما را چنین چنان چنان'))
+    return
+f = open("hello1.txt", "r")
+while True:
+    fs = f.readline()
+    if len(fs) == 0:
+        break
+    word_count(fs)
+print(dictionary)
