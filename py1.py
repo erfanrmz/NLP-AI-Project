@@ -1,46 +1,92 @@
-def getTrainSet(file):
+def getTrainSetUnigram(path):
+    file = open(path, "r", encoding='UTF-8')
     dictionary = dict()
     while True:
         fs = file.readline()
         if len(fs) == 0:
             break
+        fs = fs[:-1]
+        fs = "<s> " + fs + " </s>"
         words = fs.split()
         for word in words:
-            if word in dictionary:
-                dictionary[word] += 1
-            else:
-                dictionary[word] = 1
+            dictionary[word] = dictionary.get(word, 0) + 1
     return dictionary
 
 
-f = open("./train_set/ferdowsi_train.txt", "r", encoding='UTF-8')
-h = open("./train_set/hafez_train.txt", "r", encoding='UTF-8')
-m = open("./train_set/molavi_train.txt", "r", encoding='UTF-8')
-ferdowsiVoc = {key: val for key, val in getTrainSet(f).items() if val > 2}
-hafezVoc = {key: val for key, val in getTrainSet(h).items() if val > 2}
-molaviVoc = {key: val for key, val in getTrainSet(m).items() if val > 2}
+def getTrainSetBigram(path):
+    file = open(path, "r", encoding='UTF-8')
+    dictionary = dict()
+    while True:
+        fs = file.readline()
+        if len(fs) == 0:
+            break
+        fs = fs[:-1]  # deleting \n from end of sentence
+        fs = "<s> " + fs + " </s>"
+        words = fs.split()
+        preWord = None
+        for word in words:
+            if preWord is not None:
+                dictionary[(preWord, word)] = dictionary.get((preWord, word), 0) + 1
+            preWord = word
+    return dictionary
 
 
 class UnigramModel:
-    def __init__(self, dictionary):
-        self.dictionary = dictionary
+    def __init__(self, path):
+        self.dictionary = {key: val for key, val in getTrainSetUnigram(path).items() if val > 0}
         self.uniqueWordSize = len(self.dictionary)
-        self.wordsSize = sum(dictionary.values())
+        self.wordsSize = sum(self.dictionary.values())
 
-    def wordProb(self,word):
-        wordNo = self.dictionary.get(word,0)
+    def unigramWordProb(self, word):
+        wordNo = self.dictionary.get(word, 0)
+        # print(wordNo)
         if wordNo == 0 or self.wordsSize == 0:
             return 0
         else:
-            return float(wordNo)/float(self.wordsSize)
-    def sentenceProb(self,sentence):
+            return float(wordNo) / float(self.wordsSize)
+
+    def unigramSentenceProb(self, sentence):
         probSum = 1
-        words = probSum.split(" ")
+        words = sentence.split(" ")
         for i in words:
-            probSum *= self.wordProb(i)
+            probSum *= self.unigramWordProb(i)
         return probSum
 
 
-print(ferdowsiVoc)
-print(hafezVoc)
-print(molaviVoc)
+class BigramModel(UnigramModel):
+    def __init__(self, path):
+        UnigramModel.__init__(self, path)
+        self.Bidictionary = {key: val for key, val in getTrainSetBigram(path).items() if val > 0}
+
+    def bigramWordProb(self, preWord, word):
+        WordsNo = self.Bidictionary.get((preWord, word), 0)
+        WordNo = self.dictionary.get(preWord, 0)
+        print(float(WordsNo) / float(WordNo))
+        if WordsNo == 0 or self.dictionary.get(word, 0) == 0:
+            return 0
+        return float(WordsNo) / float(WordNo)
+
+    def bigramSentenceProb(self, sentence):
+        sentence = "<s> " + sentence + " </s>"
+        words = sentence.split(" ")
+        preWord = None
+        probSum = float(1)
+        for word in words:
+            if preWord is not None:
+                probSum *= self.bigramWordProb(preWord, word)
+            preWord = word
+        return probSum
+
+
+
+ferdos = BigramModel("hello1.txt")
+print(ferdos.dictionary)
+print(ferdos.Bidictionary)
+# print(ferdos.bigramWordProb("<s>", "a"))
+# print(ferdos.bigramWordProb("a", "a"))
+# print(ferdos.bigramWordProb("a", "b"))
+# print(ferdos.bigramWordProb("b", "b"))
+
+print(ferdos.bigramSentenceProb("b a a"))
+print("yes")
+# print(ferdos.dictionary)
