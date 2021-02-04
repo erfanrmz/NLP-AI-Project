@@ -85,11 +85,23 @@ class BigramModel(UnigramModel):
         print((landa1 * epsilon))
         return (self.bigramWordProb(preWord, word) * landa3) + (self.unigramWordProb(word) * landa2) + (landa1 * epsilon)
 
+    def backOffSentenceProb(self, sentence):
+        sentence = "<s> " + sentence + " </s>"
+        words = sentence.split(" ")
+        preWord = None
+        probSum = float(1)
+        for word in words:
+            if preWord is not None:
+                probSum *= self.backOffWordProb(preWord, word)
+            preWord = word
+        return probSum
 
 
 
 
-ferdos = BigramModel("hello1.txt")
+
+
+ferdos = BigramModel("./train_set/ferdowsi_train.txt")
 print(ferdos.dictionary)
 print(ferdos.Bidictionary)
 # print(ferdos.bigramWordProb("<s>", "a"))
@@ -99,7 +111,7 @@ print(ferdos.Bidictionary)
 # print(ferdos.unigramWordProb("a"))
 # print(ferdos.unigramWordProb("b"))
 # print(ferdos.bigramWordProb("b", "a"))
-print(ferdos.backOffWordProb("b", "a"))
+# print(ferdos.backOffWordProb("b", "a"))
 # print(ferdos.bigramSentenceProb("b a a"))
 # print("yes")
 # print(ferdos.dictionary)
