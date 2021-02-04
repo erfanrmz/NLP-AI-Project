@@ -1,7 +1,9 @@
 landa1 = 0.1
-landa2 = 0.5
-landa3 = 0.4
+landa2 = 0.4
+landa3 = 0.5
 epsilon = 0.3
+
+
 def getTrainSetUnigram(path):
     file = open(path, "r", encoding='UTF-8')
     dictionary = dict()
@@ -32,6 +34,20 @@ def getTrainSetBigram(path):
             if preWord is not None:
                 dictionary[(preWord, word)] = dictionary.get((preWord, word), 0) + 1
             preWord = word
+    return dictionary
+
+
+def getTestSet(path):
+    file = open(path, "r", encoding='UTF-8')
+    dictionary = dict()
+    while True:
+        fs = file.readline()
+        if len(fs) == 0:
+            break
+        split = fs.split("\t")
+
+        poem = "<s> " + split[1][:-1] + " </s>"
+        dictionary[poem] = int(split[0])
     return dictionary
 
 
@@ -80,9 +96,6 @@ class BigramModel(UnigramModel):
         return probSum
 
     def backOffWordProb(self, preWord, word):
-        print((self.bigramWordProb(preWord, word) * landa3))
-        print((self.unigramWordProb(word) * landa2))
-        print((landa1 * epsilon))
         return (self.bigramWordProb(preWord, word) * landa3) + (self.unigramWordProb(word) * landa2) + (landa1 * epsilon)
 
     def backOffSentenceProb(self, sentence):
@@ -100,18 +113,29 @@ class BigramModel(UnigramModel):
 
 
 
+print(getTestSet("./test_set/test_file.txt"))
+ferdowsiDictionary = BigramModel("./train_set/ferdowsi_train.txt")
+hafezDictionary = BigramModel("./train_set/hafez_train.txt")
+molavaiDictionary = BigramModel("./train_set/molavi_train.txt")
+testSet = getTestSet("./test_set/test_file.txt")
+rightAnswer = 0
+for key, value in testSet.items():
+    answer = 0
+    ferdowsiProb = ferdowsiDictionary.backOffSentenceProb(key)
+    hafezProb = hafezDictionary.backOffSentenceProb(key)
+    molaviProb = molavaiDictionary.backOffSentenceProb(key)
+    maxProb = max(ferdowsiProb, hafezProb, molaviProb)
+    if maxProb == ferdowsiProb:
+        answer = 1
+    elif maxProb == hafezProb:
+        answer = 2
+    else:
+        answer = 3
+    if answer == value:
+        rightAnswer += 1
+print("Right Answers : " + str(rightAnswer))
+print(float(rightAnswer)/float(len(testSet)))
 
-ferdos = BigramModel("./train_set/ferdowsi_train.txt")
-print(ferdos.dictionary)
-print(ferdos.Bidictionary)
-# print(ferdos.bigramWordProb("<s>", "a"))
-# print(ferdos.bigramWordProb("a", "a"))
-# print(ferdos.bigramWordProb("a", "b"))
-# print(ferdos.bigramWordProb("b", "b"))
-# print(ferdos.unigramWordProb("a"))
-# print(ferdos.unigramWordProb("b"))
-# print(ferdos.bigramWordProb("b", "a"))
-# print(ferdos.backOffWordProb("b", "a"))
-# print(ferdos.bigramSentenceProb("b a a"))
-# print("yes")
-# print(ferdos.dictionary)
+
+
+
